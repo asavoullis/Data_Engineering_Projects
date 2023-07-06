@@ -168,6 +168,7 @@ class DataAPI:
         # remove use_reloader for non testing environments
         flask_config = self.config.get_flask_config()
         self.app.run(host=flask_config['HOST'], port=flask_config['PORT'], debug=flask_config.getboolean('DEBUG'), use_reloader=False)
+        # self.app.run(host=flask_config['HOST'], port=flask_config['PORT'], use_reloader=True)
 
 
 def make_api_request(endpoint_number: int, params: dict) -> dict:
@@ -219,13 +220,18 @@ if __name__ == '__main__':
     # initiates the execution of the run method in a separate thread.
     data_api_thread.start()
 
-    # waits for the thread to finish before allowing the main program to continue.
-    data_api_thread.join()
-    
     # Wait for the Flask app thread to finish
     input("Press Enter to continue after the Flask app starts...")
 
-    
+    # Example Spark SQL query
+    try:
+        sql_query = "SELECT App, Rating, Installs FROM df_cleaned2 WHERE Rating > 4.5 ORDER BY Installs DESC LIMIT 10"
+        result_sql_df = data_api.processor.spark.sql(sql_query)
+        print("\nResult of SQL Query:")
+        result_sql_df.show()
+
+    except Exception as e:
+        print(f"Error executing SQL query: {str(e)}")
 
     # Example API requests
     # print(make_api_request(1, {"column_name": "Category", "column_value": "ART_AND_DESIGN"}))   
@@ -234,3 +240,6 @@ if __name__ == '__main__':
     # make_api_request(4, {"sort_column": "Rating", "sort_order": "desc"})
     # make_api_request(5, {})  # get_all_data
     # make_api_request(6, {})  # describe_data
+
+    # waits for the thread to finish before allowing the main program to continue.
+    data_api_thread.join()
