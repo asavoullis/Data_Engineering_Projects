@@ -4,9 +4,9 @@ import threading
 import requests
 from flask import render_template_string
 
-# importing 
+# importing functions needed from files I created
 from process_data import DataProcessor
-from templates import WELCOME_TEMPLATE
+from templates import WELCOME_TEMPLATE, DOCUMENTATION_TEMPLATE
 
 
 class DataAPI:
@@ -22,7 +22,8 @@ class DataAPI:
         self.app.add_url_rule('/get_data', 'get_data', self.get_data, methods=['GET'])
         self.app.add_url_rule('/get_data_tabular', 'get_data_tabular', self.get_data_tabular, methods=['GET'])
         self.app.add_url_rule('/sort_data', 'sort_data', self.sort_data, methods=['GET'])
-
+        self.app.add_url_rule('/summary_statistics', 'summary_statistics', self.summary_statistics, methods=['GET'])
+        self.app.add_url_rule('/documentation', 'documentation', self.documentation, methods=['GET'])
 
     def index(self):
         """
@@ -31,6 +32,13 @@ class DataAPI:
         Explore this endpoint to get started and learn about the various functionalities the API offers.
         """
         return render_template_string(WELCOME_TEMPLATE)
+    
+    def documentation(self):
+        """
+        Displays documentation on how to use the Google Play Store Data API.
+        http://localhost:5000/documentation
+        """
+        return render_template_string(DOCUMENTATION_TEMPLATE)
 
 
     def get_all_data(self):
@@ -169,6 +177,21 @@ class DataAPI:
 
         except Exception as e:
             return jsonify({"error": str(e)}), 400
+        
+    def summary_statistics(self):
+        """
+        Displays descriptive statistics of the data.
+        http://localhost:5000/summary_statistics
+        """
+        try:
+            # Get descriptive statistics of the DataFrame
+            describe_stats = self.processed_df.describe().toPandas().to_dict()
+
+            # Return the JSON response
+            return jsonify({"data": describe_stats})
+
+        except Exception as e:
+            return jsonify({"error": str(e)}), 400
 
     def run(self):
         # remove use_reloader for non testing environments
@@ -188,8 +211,10 @@ def make_api_request(number: int, params):
                 api_url = "http://127.0.0.1:5000/sort_data"
             elif number == 5:
                 api_url = "http://127.0.0.1:5000/get_all_data"
+            elif number == 5:
+                api_url = "http://127.0.0.1:5000/summary_statistics"
         else:
-            return "Invalid endpoint number. Please choose select a number between 1 and 5 inclusive."
+            return "Invalid endpoint number. Please choose select a number between 1 and 6 inclusive."
         
         # Make a GET request to the API with parameters
         response = requests.get(api_url, params=params)
@@ -224,5 +249,6 @@ if __name__ == '__main__':
     make_api_request(3, {"Rating": "4.1", "Category": "ART_AND_DESIGN"})
     make_api_request(4, {"sort_column": "Rating", "sort_order": "desc"})
     # make_api_request(5, {})  # get_all_data
+    # make_api_request(6, {})  # describe_data
 
     

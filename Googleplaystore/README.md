@@ -20,6 +20,7 @@ The Flask API provides endpoints for querying the processed Google Play Store da
 - `/get_data`: Get data based on specific conditions.
 - `/get_data_tabular`: Get data in tabular format.
 - `/sort_data`: Allows sorting the data based on a column and order.
+- `/describe_data`: Descriptive statistics of numerical columns.
 
 ## PySpark Data Processing
 
@@ -46,11 +47,15 @@ Numerous features of the PySpark library were leveraged during the project, incl
 
 ## Author
 
-- Charilaos Savoullis
+- Charilaos A Savoullis
 
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
+
+## Usage
+
+Feel free to explore the provided API endpoints and Jupyter Notebook for insights into the Google Play Store dataset.
 
 ---
 
