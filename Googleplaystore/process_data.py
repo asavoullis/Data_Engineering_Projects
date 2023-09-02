@@ -78,7 +78,12 @@ if __name__ == "__main__":
     processor = DataProcessor(input_file)
     processed_df = processor.process_data()
 
+    # Wait for the Spark Session to start (optional)
+    input("Press Enter to continue after the Flask app starts...")
+
     # Testing
+
+    print(processed_df.printSchema())
 
     distinct_prices = processed_df.select("Price").distinct().orderBy(col("Price").desc())
 
