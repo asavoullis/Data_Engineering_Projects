@@ -16,14 +16,23 @@ class DataAPI:
         self.app.add_url_rule('/filter_one_column', 'filter_one_column', self.filter_one_column, methods=['GET'])
         self.app.add_url_rule('/get_data', 'get_data', self.get_data, methods=['GET'])
         self.app.add_url_rule('/get_data_tabular', 'get_data_tabular', self.get_data_tabular, methods=['GET'])
+        self.app.add_url_rule('/sort_data', 'sort_data', self.sort_data, methods=['GET'])
+
 
     def index(self):
         return "Welcome to the Google Play Store Data API, Developed by Charilaos A Savoullis!"
 
     def get_all_data(self):
         """
-        Returns all the data available
+        Returns all the data available.
         http://localhost:5000/get_all_data
+        
+        ---
+        tags:
+            - Data
+        responses:
+            200:
+                description: JSON representation of all data.
         """
 
         # Convert the PySpark DataFrame to a Pandas DataFrame for easy JSON serialization
@@ -121,9 +130,37 @@ class DataAPI:
             return jsonify({"data": data_dict_list})
 
         except Exception as e:
+            return jsonify({"error": str(e)}), 400    
+    
+    def sort_data(self):
+        """
+        Allows sorting the data based on a column and order.
+        http://localhost:5000/sort_data?sort_column=Rating&sort_order=asc
+        http://localhost:5000/sort_data?sort_column=Price&sort_order=desc
+        """
+        try:
+            # Get query parameters from the request
+            sort_column = request.args.get("sort_column")
+            sort_order = request.args.get("sort_order", "asc")  # Default to ascending order if not provided
+
+            # If the sort column is not provided, return 400
+            if not sort_column:
+                return jsonify({"error": "'sort_column' query parameter is required."}), 400
+
+            # Apply sorting to the data
+            sorted_data = self.processed_df.orderBy(col(sort_column).asc() if sort_order == "asc" else col(sort_column).desc())
+
+            # Convert the sorted data to JSON
+            data_json = sorted_data.toJSON().collect()
+
+            # Return the JSON response
+            return jsonify({"data": data_json})
+
+        except Exception as e:
             return jsonify({"error": str(e)}), 400
 
     def run(self):
+        # remove use_reloader for non testing environments
         self.app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False)
 
 def make_api_request(number: int, params):
@@ -137,9 +174,11 @@ def make_api_request(number: int, params):
             elif number == 3:
                 api_url = "http://127.0.0.1:5000/get_data_tabular"
             elif number == 4:
-                api_url = "http://127.0.0.1./get_all_data"
+                api_url = "http://127.0.0.1:5000/sort_data"
+            elif number == 5:
+                api_url = "http://127.0.0.1:5000/get_all_data"
         else:
-            return "Invalid endpoint number. Please choose 1, 2, or 3."
+            return "Invalid endpoint number. Please choose select a number between 1 and 5 inclusive."
         
         # Make a GET request to the API with parameters
         response = requests.get(api_url, params=params)
@@ -170,9 +209,9 @@ if __name__ == '__main__':
 
     # Example API requests
     make_api_request(1, {"column_name": "Category", "column_value": "ART_AND_DESIGN"})
-    
     make_api_request(2, {"Rating": "4.1", "Category": "ART_AND_DESIGN"})
     make_api_request(3, {"Rating": "4.1", "Category": "ART_AND_DESIGN"})
-    # make_api_request(4, {})  # get_all_data
+    make_api_request(4, {"sort_column": "Rating", "sort_order": "desc"})
+    # make_api_request(5, {})  # get_all_data
 
     
