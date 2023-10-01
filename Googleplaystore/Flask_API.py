@@ -1,8 +1,13 @@
 from flask import Flask, request, jsonify
 from pyspark.sql.functions import col
-from process_data import DataProcessor
 import threading
 import requests
+from flask import render_template_string
+
+# importing 
+from process_data import DataProcessor
+from templates import WELCOME_TEMPLATE
+
 
 class DataAPI:
     def __init__(self, input_file):
@@ -20,7 +25,13 @@ class DataAPI:
 
 
     def index(self):
-        return "Welcome to the Google Play Store Data API, Developed by Charilaos A Savoullis!"
+        """
+        The index function serves as the welcome endpoint for the Google Play Store Data API.
+        It provides users with a friendly introduction to the API and a quick overview of available endpoints.
+        Explore this endpoint to get started and learn about the various functionalities the API offers.
+        """
+        return render_template_string(WELCOME_TEMPLATE)
+
 
     def get_all_data(self):
         """
