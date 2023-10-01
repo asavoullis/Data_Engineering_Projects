@@ -39,18 +39,9 @@ class DataProcessor:
         Returns:
             - DataFrame: The loaded DataFrame.
         """
-        # Define the schema for the DataFrame
-        schema = StructType([
-            StructField("App", StringType(), True),
-            StructField("Category", StringType(), True),
-            StructField("Rating", StringType(), True),
-            StructField("Reviews", StringType(), True),
-            StructField("Installs", StringType(), True),
-            StructField("Type", StringType(), True),
-            StructField("Price", StringType(), True),
-        ])
+        
         # Read the CSV file
-        return self.spark.read.csv(self.input_path, sep=',', escape='"', header=True, schema=schema)
+        return self.spark.read.load('googleplaystore/googleplaystore.csv', format='csv', sept=',', escape ='"' , header=True, inferSchema=True)
 
     def process_data(self):
         """
@@ -87,4 +78,16 @@ if __name__ == "__main__":
     processor = DataProcessor(input_file)
     processed_df = processor.process_data()
 
-    print(processed_df.show(15))
+    # Testing
+
+    distinct_prices = processed_df.select("Price").distinct().orderBy(col("Price").desc())
+
+    # Show the distinct values ordered by Price in descending order
+    distinct_prices.show()
+
+    print("")
+
+    filtered_df = processed_df.select("Rating").distinct().orderBy(col("Rating").desc())
+
+    # Show the distinct values
+    filtered_df.show()
