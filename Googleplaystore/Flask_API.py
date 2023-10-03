@@ -13,6 +13,7 @@ from config import Config
 class DataAPI:
     def __init__(self, config):
         self.app = Flask(__name__)
+        self.config = config
         self.processor = DataProcessor(config)
         self.processed_df = self.processor.process_data()
 
@@ -195,8 +196,9 @@ class DataAPI:
 
     def run(self):
         # remove use_reloader for non testing environments
-        self.app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False)
-        # self.app.run()
+        flask_config = self.config.get_flask_config()
+        self.app.run(host=flask_config['HOST'], port=flask_config['PORT'], debug=flask_config.getboolean('DEBUG'), use_reloader=False)
+
 
 def make_api_request(endpoint_number: int, params: dict) -> dict:
     """
@@ -246,15 +248,19 @@ def make_api_request(endpoint_number: int, params: dict) -> dict:
 
 if __name__ == '__main__':
     config = Config()
-
-    # # Start the Flask app
-    # data_api.run()
     data_api = DataAPI(config)
     data_api_thread = threading.Thread(target=data_api.run)
+    
+    # initiates the execution of the run method in a separate thread.
     data_api_thread.start()
 
+    # waits for the thread to finish before allowing the main program to continue.
+    data_api_thread.join()
+    
     # Wait for the Flask app thread to finish
-    # input("Press Enter to continue after the Flask app starts...")
+    input("Press Enter to continue after the Flask app starts...")
+
+    
 
     # Example API requests
     # print(make_api_request(1, {"column_name": "Category", "column_value": "ART_AND_DESIGN"}))   

@@ -26,6 +26,18 @@ The Flask API provides endpoints for querying the processed Google Play Store da
 
 The `process_data.py` script handles the PySpark data processing tasks. It includes loading the data, cleaning columns, transforming data types, handling null values, and performing exploratory data analysis.
 
+## Configuration
+
+The project uses configuration files to manage various settings. Here's an overview of the configuration files:
+
+### `config.ini`
+
+The `config.ini` file contains configuration settings for the Flask application and data processing tasks. Here is an example of the `config.ini` file:
+
+## config.py
+
+The `config.py` Python module is responsible for reading and providing access to the configuration settings in config.ini
+
 ## Jupyter Notebook
 
 The `PySpark_ML_GooglePlayStore.ipynb` notebook provides a step-by-step walkthrough of the data engineering project. It covers data loading, cleaning, exploratory data analysis, and machine learning feature preparation.
@@ -43,20 +55,15 @@ Numerous features of the PySpark library were leveraged during the project, incl
 - PySpark
 - Matplotlib
 - Seaborn
+- Requests
+- Jsonify
+- Threading
 - Java JDK v17 or v11 or v8
 
 ## Author
 
 - Charilaos A Savoullis
 
-## License
-
-This project is licensed under the [MIT License](LICENSE).
-
 ## Usage
 
-Feel free to explore the provided API endpoints and Jupyter Notebook for insights into the Google Play Store dataset.
-
----
-
-Feel free to reach out with any questions or feedback!
+Feel free to explore the provided API endpoints and Jupyter Notebook for insights into the Google Play Store dataset and reach out with any questions or feedback!
