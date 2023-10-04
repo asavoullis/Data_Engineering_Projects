@@ -25,21 +25,14 @@ class DataAPI:
         self.app.add_url_rule('/get_data_tabular', 'get_data_tabular', self.get_data_tabular, methods=['GET'])
         self.app.add_url_rule('/sort_data', 'sort_data', self.sort_data, methods=['GET'])
         self.app.add_url_rule('/summary_statistics', 'summary_statistics', self.summary_statistics, methods=['GET'])
-        self.app.add_url_rule('/documentation', 'documentation', self.documentation, methods=['GET'])
+        self.app.add_url_rule('/documentation', 'documentation', self.documentation)
 
     def index(self):
-        """
-        The index function serves as the welcome endpoint for the Google Play Store Data API.
-        It provides users with a friendly introduction to the API and a quick overview of available endpoints.
-        Explore this endpoint to get started and learn about the various functionalities the API offers.
-        """
+        """ The index function serves as the welcome endpoint for the Google Play Store Data API. """
         return render_template_string(WELCOME_TEMPLATE)
     
     def documentation(self):
-        """
-        Displays documentation on how to use the Google Play Store Data API.
-        http://localhost:5000/documentation
-        """
+        """ Displays documentation on how to use the Google Play Store Data API. """
         return render_template_string(DOCUMENTATION_TEMPLATE)
     
     def filter_one_column(self):
@@ -59,10 +52,8 @@ class DataAPI:
             # Pulling data from filter
             filtered_data = self.processed_df.filter(col(column_name) == column_value)
 
-            # Convert the filtered data to JSON
             data_json = filtered_data.toJSON().collect()
 
-            # Return the JSON response
             return jsonify({"data": data_json})
 
         except Exception as e:
@@ -70,7 +61,7 @@ class DataAPI:
 
     def get_data(self):
         """
-        Allows you to filter multiple columns and retrieve data in json format
+        Allows you to filter multiple columns and retrieve data in json format.
         http://localhost:5000/get_data?column1=value1&column2=value2&column3=value3...
         http://localhost:5000/get_data?Rating=4.1&Category=ART_AND_DESIGN
         """
@@ -89,10 +80,8 @@ class DataAPI:
             for column, value in filters.items():
                 filtered_data = filtered_data.filter(col(column) == value)
 
-            # Convert the filtered data to JSON
             data_json = filtered_data.toJSON().collect()
 
-            # Return the JSON response
             return jsonify({"data": data_json})
 
         except Exception as e:
@@ -100,11 +89,9 @@ class DataAPI:
 
     def get_data_tabular(self):
         """
-        Allows you to filter multiple columns and retrieve data in a tabular format where each result appears in a different dictionary
+        Allows you to filter multiple columns and retrieve data in a tabular format where each result appears in a different dictionary.
         http://localhost:5000/get_data_tabular?column1=value1&column2=value2&column3=value3...
         http://localhost:5000/get_data_tabular?Rating=4.1&Category=ART_AND_DESIGN
-
-        The function will return data where both conditions are met: the Rating is equal to "4.1" AND the Category is equal to "ART_AND_DESIGN."
         """
         try:
             # Get query parameters from the request
@@ -137,7 +124,6 @@ class DataAPI:
         """
         Allows sorting the data based on a column and order.
         http://localhost:5000/sort_data?sort_column=Rating&sort_order=asc
-        http://localhost:5000/sort_data?sort_column=Price&sort_order=desc
         """
         try:
             # Get query parameters from the request
@@ -154,24 +140,13 @@ class DataAPI:
             # Convert the sorted data to JSON
             data_json = sorted_data.toJSON().collect()
 
-            # Return the JSON response
             return jsonify({"data": data_json})
 
         except Exception as e:
             return jsonify({"error": str(e)}), 400
     
     def get_all_data(self):
-        """
-        Returns all the data available.
-        http://localhost:5000/get_all_data
-        
-        ---
-        tags:
-            - Data
-        responses:
-            200:
-                description: JSON representation of all data.
-        """
+        """ Returns all the data available. """
 
         # Convert the PySpark DataFrame to a Pandas DataFrame for easy JSON serialization
         pandas_df = self.processed_df.toPandas()
@@ -180,15 +155,10 @@ class DataAPI:
         return jsonify(json_data)
         
     def summary_statistics(self):
-        """
-        Displays descriptive statistics of the data.
-        http://localhost:5000/summary_statistics
-        """
+        """ Displays descriptive statistics of the data. """
         try:
-            # Get descriptive statistics of the DataFrame
             describe_stats = self.processed_df.describe().toPandas().to_dict()
 
-            # Return the JSON response
             return jsonify({"data": describe_stats})
 
         except Exception as e:
@@ -210,11 +180,7 @@ def make_api_request(endpoint_number: int, params: dict) -> dict:
 
     Returns:
     - dict: The JSON response from the API.
-
-    Raises:
-    - ValueError: If an invalid endpoint number is provided.
     """
-    # Define the base URL for the API
     base_url = "http://127.0.0.1:5000"
 
     # Define the valid endpoint numbers and their corresponding paths
@@ -239,7 +205,6 @@ def make_api_request(endpoint_number: int, params: dict) -> dict:
         response = requests.get(api_url, params=params)
         response.raise_for_status()  # Raise an exception for bad responses (4xx and 5xx)
 
-        # Parse and return the JSON response
         return response.json()
 
     except requests.exceptions.RequestException as e:

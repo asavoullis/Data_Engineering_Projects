@@ -2,12 +2,12 @@
 
 ## Project Overview
 
-In this data engineering project, I've focused on the analysis and preparation of financial EUR/USD forex data. The project involves tasks such as data loading, cleaning, transformation, and analysis to ensure the dataset is ready for various data analysis, machine learning, or reporting tasks.
+In this data engineering project, I've focused on the analysis and preparation of financial EUR/USD forex data. The project involves tasks such as data loading, cleaning, transformation and analysis to ensure the dataset is ready for various data analysis, machine learning, or reporting tasks.
 
 ## Project Structure
 
-- **eurusd_hour_analysis.ipynb**: Jupyter Notebook with a step-by-step walkthrough of the data engineering project, covering data loading, cleaning, exploratory data analysis, and machine learning feature preparation.
-- **README.md**: Documentation providing an overview of the project, its structure, and instructions for usage.
+- **eurusd_hour_analysis.ipynb**: Jupyter Notebook with a step-by-step walkthrough of the data engineering project, covering data loading, cleaning, exploratory data analysis and machine learning feature preparation.
+- **README.md**: Documentation providing an overview of the project, its structure and instructions for usage.
 - **DataSet**: Where the csv raw data are. The file that was used for the data is `eurousd.csv`.
 
 ## Data Exploration and Analysis
