@@ -1,7 +1,9 @@
 # process_data.py
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, regexp_replace
-from pyspark.sql.types import StructType, StructField, StringType, DoubleType, IntegerType, FloatType
+from pyspark.sql.types import  IntegerType, FloatType
+
+from config import Config  # Importing the Config class from config.py
 
 class DataProcessor:
     """
@@ -11,7 +13,7 @@ class DataProcessor:
     PySpark_ML_GooglePlayStore.ipynb.
     """
 
-    def __init__(self, input_path, output_path=None):
+    def __init__(self, config):
         """
         Initializes the DataProcessor object.
 
@@ -19,8 +21,7 @@ class DataProcessor:
             - input_path (str): The path to the input CSV file.
             - output_path (str, optional): The path to save the processed CSV file. If not provided, the data won't be saved.
         """
-        self.input_path = input_path
-        self.output_path = output_path
+        self.input_path = config.get_data_processing_config()['INPUT_FILE']
         self.spark = self._create_spark_session()
 
     def _create_spark_session(self):
@@ -64,35 +65,30 @@ class DataProcessor:
 
         # Replace NaN values in the "Rating" column with 0
         df_cleaned = df_cleaned.fillna(0, subset=["Rating"])
-
-        if self.output_path:
-            # Save the processed data to a new CSV file
-            df_cleaned.write.csv(self.output_path, header=True, mode="overwrite")
-
+        
         return df_cleaned
 
 if __name__ == "__main__":
-    input_file = "googleplaystore/googleplaystore.csv"
-    output_file = "processed_googleplaystore.csv"
+    config = Config()
 
-    processor = DataProcessor(input_file)
+    processor = DataProcessor(config)
     processed_df = processor.process_data()
 
-    # Wait for the Spark Session to start (optional)
-    input("Press Enter to continue after the Flask app starts...")
+    # Wait for the Spark Session to start 
+    input("Press Enter to continue after the Spark app starts...")
 
     # Testing
 
-    print(processed_df.printSchema())
-
-    distinct_prices = processed_df.select("Price").distinct().orderBy(col("Price").desc())
+    processed_df.printSchema()
 
     # Show the distinct values ordered by Price in descending order
+    distinct_prices = processed_df.select("Price").distinct().orderBy(col("Price").desc())    
     distinct_prices.show()
+
+    # Wait for the Spark Session to start 
+    input("Press Enter to continue after the Spark app starts...")
 
     print("")
 
     filtered_df = processed_df.select("Rating").distinct().orderBy(col("Rating").desc())
-
-    # Show the distinct values
     filtered_df.show()

@@ -4,15 +4,16 @@ import threading
 import requests
 from flask import render_template_string
 
-# importing functions needed from files I created
+# importing functions and configurations from files I created
 from process_data import DataProcessor
 from templates import WELCOME_TEMPLATE, DOCUMENTATION_TEMPLATE
+from config import Config
 
 
 class DataAPI:
-    def __init__(self, input_file):
+    def __init__(self, config):
         self.app = Flask(__name__)
-        self.processor = DataProcessor(input_file)
+        self.processor = DataProcessor(config)
         self.processed_df = self.processor.process_data()
 
         # Set up routes
@@ -39,26 +40,6 @@ class DataAPI:
         http://localhost:5000/documentation
         """
         return render_template_string(DOCUMENTATION_TEMPLATE)
-
-
-    def get_all_data(self):
-        """
-        Returns all the data available.
-        http://localhost:5000/get_all_data
-        
-        ---
-        tags:
-            - Data
-        responses:
-            200:
-                description: JSON representation of all data.
-        """
-
-        # Convert the PySpark DataFrame to a Pandas DataFrame for easy JSON serialization
-        pandas_df = self.processed_df.toPandas()
-        # Convert the Pandas DataFrame to a JSON string
-        json_data = pandas_df.to_json(orient='records')
-        return jsonify(json_data)
     
     def filter_one_column(self):
         """
@@ -177,6 +158,25 @@ class DataAPI:
 
         except Exception as e:
             return jsonify({"error": str(e)}), 400
+    
+    def get_all_data(self):
+        """
+        Returns all the data available.
+        http://localhost:5000/get_all_data
+        
+        ---
+        tags:
+            - Data
+        responses:
+            200:
+                description: JSON representation of all data.
+        """
+
+        # Convert the PySpark DataFrame to a Pandas DataFrame for easy JSON serialization
+        pandas_df = self.processed_df.toPandas()
+        # Convert the Pandas DataFrame to a JSON string
+        json_data = pandas_df.to_json(orient='records')
+        return jsonify(json_data)
         
     def summary_statistics(self):
         """
@@ -196,59 +196,70 @@ class DataAPI:
     def run(self):
         # remove use_reloader for non testing environments
         self.app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False)
+        # self.app.run()
 
-def make_api_request(number: int, params):
+def make_api_request(endpoint_number: int, params: dict) -> dict:
+    """
+    Make a request to a specified API endpoint.
+
+    Parameters:
+    - endpoint_number (int): The number corresponding to the desired API endpoint.
+    - params (dict): Query parameters for the API request.
+
+    Returns:
+    - dict: The JSON response from the API.
+
+    Raises:
+    - ValueError: If an invalid endpoint number is provided.
+    """
+    # Define the base URL for the API
+    base_url = "http://127.0.0.1:5000"
+
+    # Define the valid endpoint numbers and their corresponding paths
+    endpoints = {
+        1: "/filter_one_column",
+        2: "/get_data",
+        3: "/get_data_tabular",
+        4: "/sort_data",
+        5: "/get_all_data",
+        6: "/summary_statistics"
+    }
+
+    # Check if the provided endpoint number is valid
+    if endpoint_number not in endpoints:
+        raise ValueError("Invalid endpoint number. Please choose a number between 1 and 6 inclusive.")
+
+    # Construct the complete API URL
+    api_url = f"{base_url}{endpoints[endpoint_number]}"
+
     try:
-        if number in (1, 2, 3):
-            # Define the API endpoint URL with query parameters
-            if number == 1:
-                api_url = "http://127.0.0.1:5000/filter_one_column"
-            elif number == 2:
-                api_url = "http://127.0.0.1:5000/get_data"
-            elif number == 3:
-                api_url = "http://127.0.0.1:5000/get_data_tabular"
-            elif number == 4:
-                api_url = "http://127.0.0.1:5000/sort_data"
-            elif number == 5:
-                api_url = "http://127.0.0.1:5000/get_all_data"
-            elif number == 5:
-                api_url = "http://127.0.0.1:5000/summary_statistics"
-        else:
-            return "Invalid endpoint number. Please choose select a number between 1 and 6 inclusive."
-        
-        # Make a GET request to the API with parameters
+        # Make the API request
         response = requests.get(api_url, params=params)
+        response.raise_for_status()  # Raise an exception for bad responses (4xx and 5xx)
 
-        # Check if the request was successful (status code 200)
-        if response.status_code == 200:
-            # Parse the JSON response
-            data = response.json()
-            print(data)
-        else:
-            print(f"Request failed with status code {response.status_code}: {response.text}")
-    except Exception as e:
-        print(f"An error occurred: {str(e)}")
+        # Parse and return the JSON response
+        return response.json()
+
+    except requests.exceptions.RequestException as e:
+        # Handle request exceptions (e.g., connection error, timeout)
+        return {"error": f"Failed to make API request: {str(e)}"}
 
 if __name__ == '__main__':
-    input_file = "googleplaystore/googleplaystore.csv"
-    data_api = DataAPI(input_file)
-    data_api_thread = threading.Thread(target=data_api.run)
+    config = Config()
 
-    # Start the Flask app in a separate thread
+    # # Start the Flask app
+    # data_api.run()
+    data_api = DataAPI(config)
+    data_api_thread = threading.Thread(target=data_api.run)
     data_api_thread.start()
 
     # Wait for the Flask app thread to finish
-    data_api_thread.join()
-
-    # Wait for the Flask app to start (optional)
-    input("Press Enter to continue after the Flask app starts...")
+    # input("Press Enter to continue after the Flask app starts...")
 
     # Example API requests
-    make_api_request(1, {"column_name": "Category", "column_value": "ART_AND_DESIGN"})
-    make_api_request(2, {"Rating": "4.1", "Category": "ART_AND_DESIGN"})
-    make_api_request(3, {"Rating": "4.1", "Category": "ART_AND_DESIGN"})
-    make_api_request(4, {"sort_column": "Rating", "sort_order": "desc"})
+    # print(make_api_request(1, {"column_name": "Category", "column_value": "ART_AND_DESIGN"}))   
+    # make_api_request(2, {"Rating": "4.1", "Category": "ART_AND_DESIGN"})
+    # make_api_request(3, {"Rating": "4.1", "Category": "ART_AND_DESIGN"})
+    # make_api_request(4, {"sort_column": "Rating", "sort_order": "desc"})
     # make_api_request(5, {})  # get_all_data
     # make_api_request(6, {})  # describe_data
-
-    
