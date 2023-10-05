@@ -53,6 +53,8 @@ WELCOME_TEMPLATE = """
      |-- Type: string (nullable = true)
      |-- Price: float (nullable = true)
      |-- Genres: string (nullable = true)
+     |-- CategoryIndex: double (nullable = false)
+     |-- AppNameLength: integer (nullable = true)
     </pre>
     <h2>Available Endpoints:</h2>
     <ul>
@@ -77,6 +79,8 @@ WELCOME_TEMPLATE = """
 DOCUMENTATION_TEMPLATE = """
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
     <title>API Documentation</title>
     <style>
         body {
