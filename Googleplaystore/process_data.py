@@ -9,28 +9,16 @@ from config import Config  # Importing the Config class from config.py
 class DataProcessor:
     """
     This class processes a CSV file using PySpark.
-    It loads the data, performs cleaning operations, and saves the processed data to a new CSV file.
-    The explanation of the processing of the GooglePlayStore.csv file is in:
-    PySpark_ML_GooglePlayStore.ipynb.
+    It loads the data, performs cleaning operations and further processesed/transformed the data.
+    The explanation of the processing of the GooglePlayStore.csv file is in: PySpark_ML_GooglePlayStore.ipynb.
     """
 
     def __init__(self, config):
-        """
-        Initializes the DataProcessor object.
-
-        Parameters:
-            - input_path (str): The path to the input CSV file.
-        """
         self.input_path = config.get_data_processing_config()['INPUT_FILE']
         self.spark = self._create_spark_session()
 
     def _create_spark_session(self):
-        """
-        Creates a Spark session.
-
-        Returns:
-            - SparkSession: The Spark session.
-        """
+        """ Creates and return a Spark session. """
         return SparkSession.builder \
             .appName("DataProcessing") \
             .config("spark.ui.reverseProxy", "true") \
@@ -38,20 +26,11 @@ class DataProcessor:
             .getOrCreate()
 
     def _load_data(self):
-        """
-        Loads the CSV data into a PySpark DataFrame.
-
-        Returns:
-            - DataFrame: The loaded DataFrame.
-        """
-        
-        # Read the CSV file
+        """ Loads and returns the CSV data into a PySpark DataFrame. """
         return self.spark.read.load('googleplaystore/googleplaystore.csv', format='csv', sept=',', escape ='"' , header=True, inferSchema=True)
 
     def process_data(self):
-        """
-        Cleaning and Processesing the Dataframe.
-        """
+        """ Cleaning and Processesing the Dataframe. """
         # Load the data
         df = self._load_data()
 
@@ -74,23 +53,24 @@ class DataProcessor:
         indexer = StringIndexer(inputCol="Category", outputCol="CategoryIndex")
         df_cleaned2 = indexer.fit(df_cleaned).transform(df_cleaned)
 
-        # Feature Engineering (example: create a new column representing the length of the "App" column)
+        # Feature Engineering - creataed a new column representing the length of the "App" column
         df_cleaned2 = df_cleaned2.withColumn("AppNameLength", length("App"))
 
+        df_cleaned2.createOrReplaceTempView("df_cleaned2")
+        print("DataFrame names:", self.spark.catalog.listTables())
         return df_cleaned2
 
 if __name__ == "__main__":
     config = Config()
-
     processor = DataProcessor(config)
     processed_df = processor.process_data()
-
-    # processed_df.show(10)
 
     # Wait for the Spark Session to start 
     input("Press Enter to continue after the Spark app starts...")
 
     # Testing
+
+    # processed_df.show(10)
 
     processed_df.printSchema()
 
