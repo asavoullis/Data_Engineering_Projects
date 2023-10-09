@@ -57,7 +57,7 @@ class DataProcessor:
         df_cleaned2 = df_cleaned2.withColumn("AppNameLength", length("App"))
 
         df_cleaned2.createOrReplaceTempView("df_cleaned2")
-        print("DataFrame names:", self.spark.catalog.listTables())
+        # print("DataFrame names:", self.spark.catalog.listTables())
         return df_cleaned2
 
 if __name__ == "__main__":

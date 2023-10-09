@@ -59,7 +59,17 @@ The `GooglePlayStore_Analysis.ipynb` notebook provides a step-by-step walkthroug
 - numpy 1.25.2
 - jupyter_client 8.3.0
 - jupyter_core 5.3.1
-- Java JDK v17 or v11 or v8
+- Java JDK v17
+
+## Unit Testing
+
+I have added a unit testing file (`test_app.py`) to ensure the correctness of the Flask API and data processing functionality. The unit tests cover various endpoints and scenarios to validate the behavior of the API under different conditions.
+
+To run the unit tests:
+
+```bash
+python test_app.py
+```
 
 ## Author
 

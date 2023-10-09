@@ -150,7 +150,7 @@ class DataAPI:
 
         # Convert the PySpark DataFrame to a Pandas DataFrame for easy JSON serialization
         pandas_df = self.processed_df.toPandas()
-        # Convert the Pandas DataFrame to a JSON string
+        # Convert the Pandas DataFrame to a JSON list
         json_data = pandas_df.to_json(orient='records')
         return jsonify(json_data)
         
