@@ -70,6 +70,17 @@ if __name__ == "__main__":
 
     # Testing
 
+    # Print number of rows
+    num_rows = processed_df.count()
+    print(f"Number of rows: {num_rows}")
+
+    # Print number of columns
+    num_columns = len(processed_df.columns)
+    print(f"Number of columns: {num_columns}")
+
+    # Wait for the Spark Session to start 
+    input("Press Enter to continue after the Spark app starts...")
+
     # processed_df.show(10)
 
     processed_df.printSchema()
