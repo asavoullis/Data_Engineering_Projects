@@ -10,6 +10,9 @@ class TestDataAPI(unittest.TestCase):
         config = Config()
         self.data_api = DataAPI(config)
 
+    # Each test method begins with the test_ prefix, making it recognizable as a test method.
+    # Tests are executed in alphabetical order
+
     def test_index_endpoint(self):
         with self.data_api.app.test_client() as client:
             response = client.get('/')

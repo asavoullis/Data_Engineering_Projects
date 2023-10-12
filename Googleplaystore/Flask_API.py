@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from pyspark.sql.functions import col
 import requests
+import threading
 from flask import render_template_string
 
 # importing functions and configurations from files I created
@@ -168,59 +169,70 @@ class DataAPI:
         # remove use_reloader for non testing environments
         flask_config = self.config.get_flask_config()
         self.app.run(host=flask_config['HOST'], port=flask_config['PORT'], debug=flask_config.getboolean('DEBUG'),
-                     use_reloader=True)
+                     use_reloader=False)
         # self.app.run(host=flask_config['HOST'], port=flask_config['PORT'], use_reloader=True)
 
 
-def make_api_request(endpoint_number: int, params: dict) -> dict:
-    """
-    Make a request to a specified API endpoint.
+class APIClient:
+    @staticmethod
+    def make_request(endpoint_number: int, params: dict) -> dict:
+        """
+        Make a request to a specified API endpoint.
 
-    Parameters:
-    - endpoint_number (int): The number corresponding to the desired API endpoint.
-    - params (dict): Query parameters for the API request.
+        Parameters:
+        - endpoint_number (int): The number corresponding to the desired API endpoint.
+        - params (dict): Query parameters for the API request.
 
-    Returns:
-    - dict: The JSON response from the API.
-    """
-    base_url = "http://127.0.0.1:5000"
+        Returns:
+        - dict: The JSON response from the API.
+        """
+        base_url = "http://127.0.0.1:5000"
 
-    # Define the valid endpoint numbers and their corresponding paths
-    endpoints = {
-        1: "/filter_one_column",
-        2: "/get_data",
-        3: "/get_data_tabular",
-        4: "/sort_data",
-        5: "/get_all_data",
-        6: "/summary_statistics"
-    }
+        # Define the valid endpoint numbers and their corresponding paths
+        endpoints = {
+            1: "/filter_one_column",
+            2: "/get_data",
+            3: "/get_data_tabular",
+            4: "/sort_data",
+            5: "/get_all_data",
+            6: "/summary_statistics"
+        }
 
-    # Check if the provided endpoint number is valid
-    if endpoint_number not in endpoints:
-        raise ValueError("Invalid endpoint number. Please choose a number between 1 and 6 inclusive.")
+        # Check if the provided endpoint number is valid
+        if endpoint_number not in endpoints:
+            raise ValueError("Invalid endpoint number. Please choose a number between 1 and 6 inclusive.")
 
-    # Construct the complete API URL
-    api_url = f"{base_url}{endpoints[endpoint_number]}"
+        # Construct the complete API URL
+        api_url = f"{base_url}{endpoints[endpoint_number]}"
 
-    try:
-        # Make the API request
-        response = requests.get(api_url, params=params)
-        response.raise_for_status()  # Raise an exception for bad responses (4xx and 5xx)
+        try:
+            # Make the API request
+            response = requests.get(api_url, params=params)
+            response.raise_for_status()  # Raise an exception for bad responses (4xx and 5xx)
 
-        return response.json()
+            return response.json()
 
-    except requests.exceptions.RequestException as e:
-        # Handle request exceptions (e.g., connection error, timeout)
-        return {"error": f"Failed to make API request: {str(e)}"}
+        except requests.exceptions.RequestException as e:
+            # Handle request exceptions (e.g., connection error, timeout)
+            return {"error": f"Failed to make API request: {str(e)}"}
 
 
 if __name__ == '__main__':
     config = Config()
     data_api = DataAPI(config)
-    data_api.run()
+
+    # for production use only
+    # data_api.run()
+
+    # for testing
+    data_api_thread = threading.Thread(target=data_api.run)
+
+    # initiates the execution of the run method in a separate thread.
+    data_api_thread.start()
+
 
     # Wait for the Flask app thread to finish
-    # input("Press Enter to continue after the Flask app starts...")
+    input("Press Enter to continue after the Flask app starts...")
 
     # Example Spark SQL query
     try:
@@ -232,10 +244,11 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"Error executing SQL query: {str(e)}")
 
-    # Example API requests
-    # print(make_api_request(1, {"column_name": "Category", "column_value": "ART_AND_DESIGN"}))   
-    # make_api_request(2, {"Rating": "4.1", "Category": "ART_AND_DESIGN"})
-    # make_api_request(3, {"Rating": "4.1", "Category": "ART_AND_DESIGN"})
-    # make_api_request(4, {"sort_column": "Rating", "sort_order": "desc"})
-    # make_api_request(5, {})  # get_all_data
-    # make_api_request(6, {})  # describe_data
+    # # Example API requests
+    print(APIClient.make_request(1, {"column_name": "Category", "column_value": "ART_AND_DESIGN"}))   
+    # print(APIClient.make_request(2, {"Rating": "4.1", "Category": "ART_AND_DESIGN"})
+    # print(APIClient.make_request(3, {"Rating": "4.1", "Category": "ART_AND_DESIGN"})
+    # print(APIClient.make_request(4, {"sort_column": "Rating", "sort_order": "desc"})
+    # print(APIClient.make_request(5, {})  # get_all_data
+    # print(APIClient.make_request(6, {})  # describe_data
+    data_api_thread.join()
