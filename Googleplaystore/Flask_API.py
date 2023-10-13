@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 from pyspark.sql.functions import col
-import threading
 import requests
 from flask import render_template_string
 
@@ -8,6 +7,7 @@ from flask import render_template_string
 from process_data import DataProcessor
 from templates import WELCOME_TEMPLATE, DOCUMENTATION_TEMPLATE
 from config import Config
+
 
 
 class DataAPI:
@@ -167,7 +167,8 @@ class DataAPI:
     def run(self):
         # remove use_reloader for non testing environments
         flask_config = self.config.get_flask_config()
-        self.app.run(host=flask_config['HOST'], port=flask_config['PORT'], debug=flask_config.getboolean('DEBUG'), use_reloader=False)
+        self.app.run(host=flask_config['HOST'], port=flask_config['PORT'], debug=flask_config.getboolean('DEBUG'),
+                     use_reloader=True)
         # self.app.run(host=flask_config['HOST'], port=flask_config['PORT'], use_reloader=True)
 
 
@@ -212,16 +213,14 @@ def make_api_request(endpoint_number: int, params: dict) -> dict:
         # Handle request exceptions (e.g., connection error, timeout)
         return {"error": f"Failed to make API request: {str(e)}"}
 
+
 if __name__ == '__main__':
     config = Config()
     data_api = DataAPI(config)
-    data_api_thread = threading.Thread(target=data_api.run)
-    
-    # initiates the execution of the run method in a separate thread.
-    data_api_thread.start()
+    data_api.run()
 
     # Wait for the Flask app thread to finish
-    input("Press Enter to continue after the Flask app starts...")
+    # input("Press Enter to continue after the Flask app starts...")
 
     # Example Spark SQL query
     try:
@@ -240,6 +239,3 @@ if __name__ == '__main__':
     # make_api_request(4, {"sort_column": "Rating", "sort_order": "desc"})
     # make_api_request(5, {})  # get_all_data
     # make_api_request(6, {})  # describe_data
-
-    # waits for the thread to finish before allowing the main program to continue.
-    data_api_thread.join()
